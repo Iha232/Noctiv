@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Noctiv - Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="options-container">
+    <header class="options-header">
+      <div class="logo">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Noctiv</h1>
+        <p class="subtitle">Customize your browsing experience</p>
+      </div>
+    </header>
+    
+    <nav class="options-nav" id="nav">
+      <button class="nav-btn active" data-tab="general">General</button>
+      <button class="nav-btn" data-tab="theme">Theme</button>
+      <button class="nav-btn" data-tab="adblock">Ad Block</button>
+      <button class="nav-btn" data-tab="viewers">Viewers</button>
+      <button class="nav-btn" data-tab="advanced">Advanced</button>
+    </nav>
+    
+    <main class="options-main">
+      <section class="tab-panel active" id="tab-general">
+        <h2>General Settings</h2>
+        
+        <div class="setting-group">
+          <h3>Theme Mode</h3>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="themeMode" value="dark" id="themeDark">
+              <span class="radio-custom"></span>
+              <span>Dark</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="themeMode" value="light" id="themeLight">
+              <span class="radio-custom"></span>
+              <span>Light</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="themeMode" value="system" id="themeSystem">
+              <span class="radio-custom"></span>
+              <span>System Default</span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <h3>Ad Block</h3>
+          <label class="toggle-large">
+            <input type="checkbox" id="adblockEnabled">
+            <span class="toggle-slider-large"></span>
+            <div class="toggle-info">
+              <strong>Enable Ad & Tracker Blocking</strong>
+              <small>Blocks ads, trackers, and malware domains using EasyList & EasyPrivacy</small>
+            </div>
+          </label>
+        </div>
+        
+        <div class="setting-group">
+          <h3>Document Viewers</h3>
+          <label class="toggle-large">
+            <input type="checkbox" id="pdfDarkMode">
+            <span class="toggle-slider-large"></span>
+            <div class="toggle-info">
+              <strong>Dark Mode for PDFs</strong>
+              <small>Applies dark theme to Chrome's built-in PDF viewer</small>
+            </div>
+          </label>
+          <label class="toggle-large">
+            <input type="checkbox" id="officeDarkMode">
+            <span class="toggle-slider-large"></span>
+            <div class="toggle-info">
+              <strong>Dark Mode for PPT/Slides</strong>
+              <small>Applies dark theme to Google Slides, Office Online, OneDrive</small>
+            </div>
+          </label>
+        </div>
+      </section>
+      
+      <section class="tab-panel" id="tab-theme">
+        <h2>Theme Customization</h2>
+        
+        <div class="setting-group">
+          <h3>Custom Dark Mode CSS</h3>
+          <p class="setting-desc">Add custom CSS that applies only in dark mode. Use CSS variables from the theme.</p>
+          <textarea id="customDarkCSS" placeholder="/* Example: */&#10;:root {&#10;  --ext-accent: #00d4aa !important;&#10;}&#10;&#10;.my-site {&#10;  background: var(--ext-bg-secondary) !important;&#10;}"></textarea>
+          <div class="css-variables-reference">
+            <details>
+              <summary>Available CSS Variables (Dark Mode)</summary>
+              <pre><code>--ext-bg-primary: #1a1a2e
+--ext-bg-secondary: #16213e
+--ext-bg-tertiary: #0f3460
+--ext-text-primary: #eaeaea
+--ext-text-secondary: #b0b0b0
+--ext-text-muted: #888
+--ext-border: #2a2a4a
+--ext-link: #64b5f6
+--ext-accent: #bb86fc
+--ext-accent-hover: #d0a8fc
+--ext-input-bg: #1e1e3f
+--ext-input-border: #3a3a5a
+--ext-button-bg: #2a2a4a
+--ext-button-hover: #3a3a5a
+--ext-shadow: rgba(0,0,0,0.5)
+--ext-overlay: rgba(0,0,0,0.7)
+--ext-scrollbar-thumb: #444
+--ext-scrollbar-track: #1a1a2e
+--ext-selection: #bb86fc40</code></pre>
+            </details>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <h3>Custom Light Mode CSS</h3>
+          <p class="setting-desc">Add custom CSS that applies only in light mode.</p>
+          <textarea id="customLightCSS" placeholder="/* Example: */&#10;:root {&#10;  --ext-accent: #009688 !important;&#10;}"></textarea>
+          <div class="css-variables-reference">
+            <details>
+              <summary>Available CSS Variables (Light Mode)</summary>
+              <pre><code>--ext-bg-primary: #ffffff
+--ext-bg-secondary: #f5f5f5
+--ext-bg-tertiary: #e8e8e8
+--ext-text-primary: #1a1a1a
+--ext-text-secondary: #444
+--ext-text-muted: #888
+--ext-border: #ddd
+--ext-link: #1a73e8
+--ext-accent: #6200ea
+--ext-accent-hover: #7c4dff
+--ext-input-bg: #fff
+--ext-input-border: #ccc
+--ext-button-bg: #f0f0f0
+--ext-button-hover: #e0e0e0
+--ext-shadow: rgba(0,0,0,0.1)
+--ext-overlay: rgba(255,255,255,0.9)
+--ext-scrollbar-thumb: #ccc
+--ext-scrollbar-track: #f5f5f5
+--ext-selection: #6200ea40</code></pre>
+            </details>
+          </div>
+        </div>
+      </section>
+      
+      <section class="tab-panel" id="tab-adblock">
+        <h2>Ad Block Settings</h2>
+        
+        <div class="setting-group">
+          <h3>Block Lists</h3>
+          <div class="blocklist-status">
+            <div class="blocklist-item">
+              <span class="blocklist-name">EasyList (Ads)</span>
+              <span class="blocklist-status-badge enabled">Enabled</span>
+            </div>
+            <div class="blocklist-item">
+              <span class="blocklist-name">EasyPrivacy (Trackers)</span>
+              <span class="blocklist-status-badge enabled">Enabled</span>
+            </div>
+          </div>
+          <p class="setting-desc">Using Declarative Net Request (Manifest V3) for optimal performance. Rules update automatically.</p>
+        </div>
+        
+        <div class="setting-group">
+          <h3>Allowlist (Sites where ad blocking is disabled)</h3>
+          <div class="allowlist-manager">
+            <div class="allowlist-input-row">
+              <input type="text" id="allowlistInput" placeholder="example.com" />
+              <button id="addAllowlistBtn" class="btn-primary">Add</button>
+            </div>
+            <ul id="allowlistList" class="allowlist-list"></ul>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <h3>Custom Block Rules</h3>
+          <p class="setting-desc">Add custom declarativeNetRequest rules (advanced). One rule per line in JSON format.</p>
+          <textarea id="customRules" placeholder='{&#10;  "id": 1,&#10;  "priority": 1,&#10;  "action": { "type": "block" },&#10;  "condition": { "urlFilter": "||example.com^", "resourceTypes": ["script"] }&#10;}'></textarea>
+          <button id="saveCustomRules" class="btn-primary">Save Custom Rules</button>
+        </div>
+      </section>
+      
+      <section class="tab-panel" id="tab-viewers">
+        <h2>Document Viewer Settings</h2>
+        
+        <div class="setting-group">
+          <h3>PDF Viewer</h3>
+          <label class="toggle-large">
+            <input type="checkbox" id="pdfDarkMode2">
+            <span class="toggle-slider-large"></span>
+            <div class="toggle-info">
+              <strong>Enable PDF Dark Mode</strong>
+              <small>Works with Chrome's built-in PDF viewer (chrome://pdf)</small>
+            </div>
+          </label>
+          <div class="viewer-custom-css">
+            <h4>Custom PDF CSS (Dark)</h4>
+            <textarea id="pdfCustomDarkCSS" placeholder="/* Custom styles for PDF viewer in dark mode */"></textarea>
+            <h4>Custom PDF CSS (Light)</h4>
+            <textarea id="pdfCustomLightCSS" placeholder="/* Custom styles for PDF viewer in light mode */"></textarea>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <h3>PPT/Slides Viewer</h3>
+          <label class="toggle-large">
+            <input type="checkbox" id="officeDarkMode2">
+            <span class="toggle-slider-large"></span>
+            <div class="toggle-info">
+              <strong>Enable Office/Slides Dark Mode</strong>
+              <small>Works with Google Slides, Office Online, OneDrive, SharePoint</small>
+            </div>
+          </label>
+          <div class="viewer-custom-css">
+            <h4>Custom Office CSS (Dark)</h4>
+            <textarea id="officeCustomDarkCSS" placeholder="/* Custom styles for Slides/PPT in dark mode */"></textarea>
+            <h4>Custom Office CSS (Light)</h4>
+            <textarea id="officeCustomLightCSS" placeholder="/* Custom styles for Slides/PPT in light mode */"></textarea>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <h3>Supported Platforms</h3>
+          <ul class="platform-list">
+            <li>✓ Chrome Built-in PDF Viewer (<code>chrome://pdf</code>, <code>*.pdf</code>)</li>
+            <li>✓ Google Slides (<code>docs.google.com/presentation</code>)</li>
+            <li>✓ Microsoft Office Online (<code>office.live.com</code>)</li>
+            <li>✓ OneDrive (<code>onedrive.live.com</code>)</li>
+            <li>✓ SharePoint (<code>*.sharepoint.com</code>)</li>
+          </ul>
+        </div>
+      </section>
+      
+      <section class="tab-panel" id="tab-advanced">
+        <h2>Advanced Settings</h2>
+        
+        <div class="setting-group">
+          <h3>Import / Export Settings</h3>
+          <div class="import-export">
+            <button id="exportBtn" class="btn-secondary">Export Settings (JSON)</button>
+            <div class="import-row">
+              <input type="file" id="importFile" accept=".json" style="display: none;" />
+              <button id="importBtn" class="btn-secondary">Import Settings</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <h3>Debug Information</h3>
+          <div class="debug-info">
+            <div class="debug-row"><span>Extension Version:</span> <span id="extVersion">1.0.0</span></div>
+            <div class="debug-row"><span>Manifest Version:</span> <span>3</span></div>
+            <div class="debug-row"><span>Storage Type:</span> <span>chrome.storage.sync</span></div>
+            <div class="debug-row"><span>Content Scripts:</span> <span id="csCount">3</span></div>
+          </div>
+          <button id="resetBtn" class="btn-danger">Reset All Settings</button>
+        </div>
+        
+        <div class="setting-group">
+          <h3>About</h3>
+          <p>Noctiv v1.0.0</p>
+          <p class="setting-desc">Built with Manifest V3, Declarative Net Request, and CSS variable theming.</p>
+          <p class="setting-desc">Block lists: EasyList + EasyPrivacy (converted to DNR format)</p>
+        </div>
+      </section>
+    </main>
+    
+    <footer class="options-footer">
+      <button id="saveAllBtn" class="btn-primary btn-large">Save All Settings</button>
+      <span id="saveStatus" class="save-status"></span>
+    </footer>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>
