@@ -198,9 +198,19 @@
             <span class="toggle-slider-large"></span>
             <div class="toggle-info">
               <strong>Enable PDF Dark Mode</strong>
-              <small>Works with Chrome's built-in PDF viewer (chrome://pdf)</small>
+              <small>Darkens PDF pages using a CSS filter applied to the embedded viewer.</small>
             </div>
           </label>
+          <div class="setting-desc" style="margin-top:10px;padding:10px 14px;background:var(--opt-input-bg);border:1px solid var(--opt-input-border);border-radius:6px;font-size:12px;">
+            <strong>⚠ Chrome PDF Viewer Limitation:</strong>
+            Chrome's built-in PDF viewer runs in an isolated sandboxed context that extension
+            content scripts cannot access directly. Noctiv applies a CSS brightness/inversion
+            filter to the PDF embed element, which makes white backgrounds appear dark and
+            keeps text readable. Coloured images and diagrams will have slightly shifted hues
+            — this is a known limitation with no workaround from an extension content script.
+            For PDF.js-based viewers (e.g. on websites that embed their own PDF reader),
+            full DOM theming is applied instead.
+          </div>
           <div class="viewer-custom-css">
             <h4>Custom PDF CSS (Dark)</h4>
             <textarea id="pdfCustomDarkCSS" placeholder="/* Custom styles for PDF viewer in dark mode */"></textarea>
@@ -216,9 +226,19 @@
             <span class="toggle-slider-large"></span>
             <div class="toggle-info">
               <strong>Enable Office/Slides Dark Mode</strong>
-              <small>Works with Google Slides, Office Online, OneDrive, SharePoint</small>
+              <small>Themes the viewer chrome and applies a filter to canvas-rendered slide surfaces.</small>
             </div>
           </label>
+          <div class="setting-desc" style="margin-top:10px;padding:10px 14px;background:var(--opt-input-bg);border:1px solid var(--opt-input-border);border-radius:6px;font-size:12px;">
+            <strong>⚠ Canvas Slide Limitation:</strong>
+            Google Slides and Office Online render presentation slides as HTML5
+            &lt;canvas&gt; elements. CSS cannot change canvas pixel content.
+            Noctiv themes all surrounding chrome (toolbars, menus, filmstrip,
+            sidebar, speaker notes) and applies a CSS inversion filter to the
+            canvas element itself to approximate a dark slide surface.
+            Individual text colours, fills, and image hues inside the slide may
+            appear shifted. The original presentation file is never modified.
+          </div>
           <div class="viewer-custom-css">
             <h4>Custom Office CSS (Dark)</h4>
             <textarea id="officeCustomDarkCSS" placeholder="/* Custom styles for Slides/PPT in dark mode */"></textarea>
@@ -228,13 +248,15 @@
         </div>
         
         <div class="setting-group">
-          <h3>Supported Platforms</h3>
+          <h3>Platform Support Details</h3>
           <ul class="platform-list">
-            <li>✓ Chrome Built-in PDF Viewer (<code>chrome://pdf</code>, <code>*.pdf</code>)</li>
-            <li>✓ Google Slides (<code>docs.google.com/presentation</code>)</li>
-            <li>✓ Microsoft Office Online (<code>office.live.com</code>)</li>
-            <li>✓ OneDrive (<code>onedrive.live.com</code>)</li>
-            <li>✓ SharePoint (<code>*.sharepoint.com</code>)</li>
+            <li>✓ <strong>Chrome PDF Viewer</strong> — filter-based dark mode on embed surface (<code>*.pdf</code> URLs)</li>
+            <li>✓ <strong>PDF.js viewers</strong> — full DOM theming (toolbar, sidebar, page wrappers)</li>
+            <li>✓ <strong>Google Slides</strong> (<code>docs.google.com/presentation</code>) — chrome theming + canvas filter</li>
+            <li>✓ <strong>Microsoft Office Online</strong> (<code>office.live.com</code>) — chrome theming + canvas filter</li>
+            <li>✓ <strong>OneDrive</strong> (<code>onedrive.live.com</code>) — chrome theming + canvas filter</li>
+            <li>✓ <strong>SharePoint</strong> (<code>*.sharepoint.com</code>) — chrome theming + canvas filter</li>
+            <li>✗ <strong>cross-origin iframes</strong> — not accessible per browser security policy</li>
           </ul>
         </div>
       </section>

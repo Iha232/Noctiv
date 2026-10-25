@@ -2,42 +2,65 @@
   "manifest_version": 3,
   "name": "Noctiv",
   "version": "1.0.0",
-  "description": "Dark/Light theme with ad blocker for all sites including PDFs & PPTs",
+  "description": "Dark/Light theme switcher with ad blocker for all sites including PDFs and presentations.",
+
   "permissions": [
     "storage",
     "scripting",
     "activeTab",
+    "tabs",
     "declarativeNetRequest",
     "declarativeNetRequestFeedback"
   ],
+
   "host_permissions": ["<all_urls>"],
+
   "background": {
     "service_worker": "background.js"
   },
+
   "content_scripts": [
     {
+      "comment": "Main theme injector – runs on every regular web page at document_start so the theme is applied before paint.",
       "matches": ["<all_urls>"],
       "js": ["content/content.js"],
       "run_at": "document_start",
       "all_frames": true
     },
     {
-      "matches": ["*://docs.google.com/presentation/*", "*://slides.google.com/*", "*://office.live.com/*", "*://onedrive.live.com/*", "*://*.sharepoint.com/*"],
+      "comment": "PDF.js viewer theming – targets pages that embed or ARE a PDF.js viewer. Also handles Chrome's native PDF embed filter.",
+      "matches": ["<all_urls>"],
+      "js": ["content/pdf-viewer.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    },
+    {
+      "comment": "Office / Slides viewer theming.",
+      "matches": [
+        "*://docs.google.com/presentation/*",
+        "*://slides.google.com/*",
+        "*://office.live.com/*",
+        "*://onedrive.live.com/*",
+        "*://*.sharepoint.com/*"
+      ],
       "js": ["content/office-viewer.js"],
       "run_at": "document_idle",
       "all_frames": true
     }
   ],
+
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
-      "16": "icons/icon16.png",
-      "32": "icons/icon32.png",
-      "48": "icons/icon48.png",
+      "16":  "icons/icon16.png",
+      "32":  "icons/icon32.png",
+      "48":  "icons/icon48.png",
       "128": "icons/icon128.png"
     }
   },
+
   "options_page": "options/options.html",
+
   "declarative_net_request": {
     "rule_resources": [
       {
@@ -52,10 +75,11 @@
       }
     ]
   },
+
   "icons": {
-    "16": "icons/icon16.png",
-    "32": "icons/icon32.png",
-    "48": "icons/icon48.png",
+    "16":  "icons/icon16.png",
+    "32":  "icons/icon32.png",
+    "48":  "icons/icon48.png",
     "128": "icons/icon128.png"
   }
 }

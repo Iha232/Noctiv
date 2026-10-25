@@ -1,289 +1,329 @@
-const STORAGE_KEYS = {
-  THEME_MODE: 'themeMode',
-  CUSTOM_DARK_CSS: 'customDarkCSS',
-  CUSTOM_LIGHT_CSS: 'customLightCSS',
-  ADBLOCK_ENABLED: 'adblockEnabled',
-  ALLOWLIST: 'allowlist',
-  PDF_DARK_MODE: 'pdfDarkMode',
-  OFFICE_DARK_MODE: 'officeDarkMode',
-  PDF_CUSTOM_DARK_CSS: 'pdfCustomDarkCSS',
-  PDF_CUSTOM_LIGHT_CSS: 'pdfCustomLightCSS',
-  OFFICE_CUSTOM_DARK_CSS: 'officeCustomDarkCSS',
-  OFFICE_CUSTOM_LIGHT_CSS: 'officeCustomLightCSS',
-  CUSTOM_RULES: 'customRules'
+/**
+ * Noctiv - options.js
+ * Full settings page logic.
+ */
+
+'use strict';
+
+const SK = {
+  THEME_MODE:            'themeMode',
+  CUSTOM_DARK_CSS:       'customDarkCSS',
+  CUSTOM_LIGHT_CSS:      'customLightCSS',
+  ADBLOCK_ENABLED:       'adblockEnabled',
+  ALLOWLIST:             'allowlist',
+  PDF_DARK_MODE:         'pdfDarkMode',
+  OFFICE_DARK_MODE:      'officeDarkMode',
+  PDF_CUSTOM_DARK_CSS:   'pdfCustomDarkCSS',
+  PDF_CUSTOM_LIGHT_CSS:  'pdfCustomLightCSS',
+  OFFICE_CUSTOM_DARK_CSS:'officeCustomDarkCSS',
+  OFFICE_CUSTOM_LIGHT_CSS:'officeCustomLightCSS',
+  CUSTOM_RULES:          'customRules',
 };
 
 const DEFAULTS = {
-  [STORAGE_KEYS.THEME_MODE]: 'system',
-  [STORAGE_KEYS.CUSTOM_DARK_CSS]: '',
-  [STORAGE_KEYS.CUSTOM_LIGHT_CSS]: '',
-  [STORAGE_KEYS.ADBLOCK_ENABLED]: true,
-  [STORAGE_KEYS.ALLOWLIST]: [],
-  [STORAGE_KEYS.PDF_DARK_MODE]: true,
-  [STORAGE_KEYS.OFFICE_DARK_MODE]: true,
-  [STORAGE_KEYS.PDF_CUSTOM_DARK_CSS]: '',
-  [STORAGE_KEYS.PDF_CUSTOM_LIGHT_CSS]: '',
-  [STORAGE_KEYS.OFFICE_CUSTOM_DARK_CSS]: '',
-  [STORAGE_KEYS.OFFICE_CUSTOM_LIGHT_CSS]: '',
-  [STORAGE_KEYS.CUSTOM_RULES]: ''
+  [SK.THEME_MODE]:             'system',
+  [SK.CUSTOM_DARK_CSS]:        '',
+  [SK.CUSTOM_LIGHT_CSS]:       '',
+  [SK.ADBLOCK_ENABLED]:        true,
+  [SK.ALLOWLIST]:              [],
+  [SK.PDF_DARK_MODE]:          true,
+  [SK.OFFICE_DARK_MODE]:       true,
+  [SK.PDF_CUSTOM_DARK_CSS]:    '',
+  [SK.PDF_CUSTOM_LIGHT_CSS]:   '',
+  [SK.OFFICE_CUSTOM_DARK_CSS]: '',
+  [SK.OFFICE_CUSTOM_LIGHT_CSS]:'',
+  [SK.CUSTOM_RULES]:           '',
 };
 
 let currentSettings = {};
 
-function getEl(id) {
-  return document.getElementById(id);
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function el(id) { return document.getElementById(id); }
+
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
 }
 
-async function loadSettings() {
-  const keys = Object.values(STORAGE_KEYS);
-  const result = await new Promise(resolve => chrome.storage.sync.get(keys, resolve));
-  
-  currentSettings = {};
-  keys.forEach(key => {
-    currentSettings[key] = result[key] ?? DEFAULTS[key];
+/**
+ * Send a message to all open http/https tabs. Errors from restricted pages
+ * (chrome://, extension pages) are silently ignored.
+ */
+function broadcastToTabs(action, data = {}) {
+  chrome.tabs.query({}, tabs => {
+    for (const tab of tabs) {
+      if (tab.id && tab.url && /^(https?|file):/.test(tab.url)) {
+        chrome.tabs.sendMessage(tab.id, { action, ...data }).catch(() => {});
+      }
+    }
   });
-  
+}
+
+// ─── Load settings ────────────────────────────────────────────────────────────
+async function loadSettings() {
+  const keys   = Object.values(SK);
+  const stored = await new Promise(r => chrome.storage.sync.get(keys, r));
+
+  currentSettings = {};
+  for (const key of keys) {
+    currentSettings[key] = stored[key] ?? DEFAULTS[key];
+  }
+
   applySettingsToUI();
 }
 
+// ─── Apply to UI ──────────────────────────────────────────────────────────────
 function applySettingsToUI() {
-  const themeMode = currentSettings[STORAGE_KEYS.THEME_MODE];
-  const themeRadio = document.querySelector(`input[name="themeMode"][value="${themeMode}"]`);
+  // Theme radio
+  const themeRadio = document.querySelector(
+    `input[name="themeMode"][value="${currentSettings[SK.THEME_MODE]}"]`
+  );
   if (themeRadio) themeRadio.checked = true;
-  
-  const adblockEl = getEl('adblockEnabled');
-  if (adblockEl) adblockEl.checked = currentSettings[STORAGE_KEYS.ADBLOCK_ENABLED];
-  
-  const pdfDarkModeEl = getEl('pdfDarkMode');
-  if (pdfDarkModeEl) pdfDarkModeEl.checked = currentSettings[STORAGE_KEYS.PDF_DARK_MODE];
-  
-  const officeDarkModeEl = getEl('officeDarkMode');
-  if (officeDarkModeEl) officeDarkModeEl.checked = currentSettings[STORAGE_KEYS.OFFICE_DARK_MODE];
-  
-  const pdfDarkMode2El = getEl('pdfDarkMode2');
-  if (pdfDarkMode2El) pdfDarkMode2El.checked = currentSettings[STORAGE_KEYS.PDF_DARK_MODE];
-  
-  const officeDarkMode2El = getEl('officeDarkMode2');
-  if (officeDarkMode2El) officeDarkMode2El.checked = currentSettings[STORAGE_KEYS.OFFICE_DARK_MODE];
-  
-  getEl('customDarkCSS').value = currentSettings[STORAGE_KEYS.CUSTOM_DARK_CSS];
-  getEl('customLightCSS').value = currentSettings[STORAGE_KEYS.CUSTOM_LIGHT_CSS];
-  getEl('pdfCustomDarkCSS').value = currentSettings[STORAGE_KEYS.PDF_CUSTOM_DARK_CSS];
-  getEl('pdfCustomLightCSS').value = currentSettings[STORAGE_KEYS.PDF_CUSTOM_LIGHT_CSS];
-  getEl('officeCustomDarkCSS').value = currentSettings[STORAGE_KEYS.OFFICE_CUSTOM_DARK_CSS];
-  getEl('officeCustomLightCSS').value = currentSettings[STORAGE_KEYS.OFFICE_CUSTOM_LIGHT_CSS];
-  getEl('customRules').value = currentSettings[STORAGE_KEYS.CUSTOM_RULES];
-  
+
+  // Checkboxes
+  [
+    ['adblockEnabled',  SK.ADBLOCK_ENABLED],
+    ['pdfDarkMode',     SK.PDF_DARK_MODE],
+    ['officeDarkMode',  SK.OFFICE_DARK_MODE],
+    ['pdfDarkMode2',    SK.PDF_DARK_MODE],
+    ['officeDarkMode2', SK.OFFICE_DARK_MODE],
+  ].forEach(([id, key]) => {
+    const e = el(id);
+    if (e) e.checked = !!currentSettings[key];
+  });
+
+  // Textareas (guard against missing elements)
+  const textareas = [
+    ['customDarkCSS',      SK.CUSTOM_DARK_CSS],
+    ['customLightCSS',     SK.CUSTOM_LIGHT_CSS],
+    ['pdfCustomDarkCSS',   SK.PDF_CUSTOM_DARK_CSS],
+    ['pdfCustomLightCSS',  SK.PDF_CUSTOM_LIGHT_CSS],
+    ['officeCustomDarkCSS',SK.OFFICE_CUSTOM_DARK_CSS],
+    ['officeCustomLightCSS',SK.OFFICE_CUSTOM_LIGHT_CSS],
+    ['customRules',        SK.CUSTOM_RULES],
+  ];
+  for (const [id, key] of textareas) {
+    const e = el(id);
+    if (e) e.value = currentSettings[key] ?? '';
+  }
+
   renderAllowlist();
 }
 
+// ─── Allowlist ────────────────────────────────────────────────────────────────
 function renderAllowlist() {
-  const list = getEl('allowlistList');
-  const allowlist = currentSettings[STORAGE_KEYS.ALLOWLIST] || [];
-  
+  const list      = el('allowlistList');
+  const allowlist = currentSettings[SK.ALLOWLIST] ?? [];
+
   if (allowlist.length === 0) {
-    list.innerHTML = '<li style="color: var(--opt-text-dim); justify-content: center;">No sites in allowlist</li>';
+    list.innerHTML = '<li style="color:var(--opt-text-dim);justify-content:center;">No sites in allowlist</li>';
     return;
   }
-  
+
   list.innerHTML = allowlist.map(domain => `
     <li>
       <span>${escapeHtml(domain)}</span>
-      <button data-domain="${escapeHtml(domain)}">Remove</button>
+      <button data-domain="${escapeHtml(domain)}" aria-label="Remove ${escapeHtml(domain)}">Remove</button>
     </li>
   `).join('');
-  
-  list.querySelectorAll('button').forEach(btn => {
+
+  list.querySelectorAll('button[data-domain]').forEach(btn => {
     btn.addEventListener('click', () => removeFromAllowlist(btn.dataset.domain));
   });
 }
 
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function setupNavigation() {
-  const navBtns = document.querySelectorAll('.nav-btn');
-  const panels = document.querySelectorAll('.tab-panel');
-  
-  navBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tab = btn.dataset.tab;
-      
-      navBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      
-      panels.forEach(p => p.classList.remove('active'));
-      document.getElementById(`tab-${tab}`).classList.add('active');
-    });
-  });
-}
-
-function setupEventListeners() {
-  document.querySelectorAll('input[name="themeMode"]').forEach(radio => {
-    radio.addEventListener('change', (e) => {
-      currentSettings[STORAGE_KEYS.THEME_MODE] = e.target.value;
-      notifyContentScripts('themeChanged', { theme: e.target.value });
-    });
-  });
-  
-  getEl('adblockEnabled').addEventListener('change', (e) => {
-    currentSettings[STORAGE_KEYS.ADBLOCK_ENABLED] = e.target.checked;
-    chrome.runtime.sendMessage({ action: 'adblockToggled', enabled: e.target.checked });
-  });
-  
-  getEl('pdfDarkMode').addEventListener('change', (e) => {
-    currentSettings[STORAGE_KEYS.PDF_DARK_MODE] = e.target.checked;
-    getEl('pdfDarkMode2').checked = e.target.checked;
-    notifyContentScripts('pdfThemeChanged', { enabled: e.target.checked });
-  });
-  
-  getEl('pdfDarkMode2').addEventListener('change', (e) => {
-    currentSettings[STORAGE_KEYS.PDF_DARK_MODE] = e.target.checked;
-    getEl('pdfDarkMode').checked = e.target.checked;
-    notifyContentScripts('pdfThemeChanged', { enabled: e.target.checked });
-  });
-  
-  getEl('officeDarkMode').addEventListener('change', (e) => {
-    currentSettings[STORAGE_KEYS.OFFICE_DARK_MODE] = e.target.checked;
-    getEl('officeDarkMode2').checked = e.target.checked;
-    notifyContentScripts('officeThemeChanged', { enabled: e.target.checked });
-  });
-  
-  getEl('officeDarkMode2').addEventListener('change', (e) => {
-    currentSettings[STORAGE_KEYS.OFFICE_DARK_MODE] = e.target.checked;
-    getEl('officeDarkMode').checked = e.target.checked;
-    notifyContentScripts('officeThemeChanged', { enabled: e.target.checked });
-  });
-  
-  getEl('customDarkCSS').addEventListener('input', (e) => {
-    currentSettings[STORAGE_KEYS.CUSTOM_DARK_CSS] = e.target.value;
-  });
-  
-  getEl('customLightCSS').addEventListener('input', (e) => {
-    currentSettings[STORAGE_KEYS.CUSTOM_LIGHT_CSS] = e.target.value;
-  });
-  
-  getEl('pdfCustomDarkCSS').addEventListener('input', (e) => {
-    currentSettings[STORAGE_KEYS.PDF_CUSTOM_DARK_CSS] = e.target.value;
-  });
-  
-  getEl('pdfCustomLightCSS').addEventListener('input', (e) => {
-    currentSettings[STORAGE_KEYS.PDF_CUSTOM_LIGHT_CSS] = e.target.value;
-  });
-  
-  getEl('officeCustomDarkCSS').addEventListener('input', (e) => {
-    currentSettings[STORAGE_KEYS.OFFICE_CUSTOM_DARK_CSS] = e.target.value;
-  });
-  
-  getEl('officeCustomLightCSS').addEventListener('input', (e) => {
-    currentSettings[STORAGE_KEYS.OFFICE_CUSTOM_LIGHT_CSS] = e.target.value;
-  });
-  
-  getEl('customRules').addEventListener('input', (e) => {
-    currentSettings[STORAGE_KEYS.CUSTOM_RULES] = e.target.value;
-  });
-  
-  getEl('addAllowlistBtn').addEventListener('click', addToAllowlist);
-  getEl('allowlistInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') addToAllowlist();
-  });
-  
-  getEl('saveCustomRules').addEventListener('click', saveCustomRules);
-  
-  getEl('exportBtn').addEventListener('click', exportSettings);
-  getEl('importBtn').addEventListener('click', () => getEl('importFile').click());
-  getEl('importFile').addEventListener('change', importSettings);
-  
-  getEl('resetBtn').addEventListener('click', resetSettings);
-  
-  getEl('saveAllBtn').addEventListener('click', saveAllSettings);
-}
-
 async function addToAllowlist() {
-  const input = getEl('allowlistInput');
-  const domain = input.value.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
-  
+  const input  = el('allowlistInput');
+  const domain = input.value.trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .split('/')[0];
+
   if (!domain) return;
-  
-  const allowlist = currentSettings[STORAGE_KEYS.ALLOWLIST] || [];
-  if (!allowlist.includes(domain)) {
-    allowlist.push(domain);
-    currentSettings[STORAGE_KEYS.ALLOWLIST] = allowlist;
-    await chrome.runtime.sendMessage({ action: 'toggleAllowlist', domain, add: true });
-    renderAllowlist();
-    input.value = '';
-    showSaveStatus('Added to allowlist');
+
+  const allowlist = currentSettings[SK.ALLOWLIST] ?? [];
+  if (allowlist.includes(domain)) {
+    showSaveStatus('Domain already in allowlist', false, true);
+    return;
   }
+
+  allowlist.push(domain);
+  currentSettings[SK.ALLOWLIST] = allowlist;
+
+  await chrome.storage.sync.set({ [SK.ALLOWLIST]: allowlist });
+  chrome.runtime.sendMessage({ action: 'toggleAllowlist', domain, add: true }).catch(() => {});
+  renderAllowlist();
+  input.value = '';
+  showSaveStatus('Added to allowlist');
 }
 
 async function removeFromAllowlist(domain) {
-  const allowlist = (currentSettings[STORAGE_KEYS.ALLOWLIST] || []).filter(d => d !== domain);
-  currentSettings[STORAGE_KEYS.ALLOWLIST] = allowlist;
-  await chrome.runtime.sendMessage({ action: 'toggleAllowlist', domain, add: false });
+  const allowlist = (currentSettings[SK.ALLOWLIST] ?? []).filter(d => d !== domain);
+  currentSettings[SK.ALLOWLIST] = allowlist;
+
+  await chrome.storage.sync.set({ [SK.ALLOWLIST]: allowlist });
+  chrome.runtime.sendMessage({ action: 'toggleAllowlist', domain, add: false }).catch(() => {});
   renderAllowlist();
   showSaveStatus('Removed from allowlist');
 }
 
-async function saveCustomRules() {
-  const rulesText = getEl('customRules').value.trim();
-  currentSettings[STORAGE_KEYS.CUSTOM_RULES] = rulesText;
-  
-  try {
-    if (rulesText) {
-      const rules = JSON.parse(rulesText);
-      await chrome.declarativeNetRequest.updateDynamicRules({
-        addRules: Array.isArray(rules) ? rules : [rules]
-      });
-    }
-    showSaveStatus('Custom rules saved');
-  } catch (e) {
-    showSaveStatus('Invalid JSON: ' + e.message, true);
-  }
-}
+// ─── Navigation ───────────────────────────────────────────────────────────────
+function setupNavigation() {
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const panels  = document.querySelectorAll('.tab-panel');
 
-function notifyContentScripts(action, data) {
-  chrome.tabs.query({}, (tabs) => {
-    tabs.forEach(tab => {
-      if (tab.id) {
-        chrome.tabs.sendMessage(tab.id, { action, ...data }).catch(() => {});
-      }
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      navBtns.forEach(b  => b.classList.remove('active'));
+      panels.forEach(p   => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`tab-${btn.dataset.tab}`)?.classList.add('active');
     });
   });
 }
 
+// ─── Event listeners ──────────────────────────────────────────────────────────
+function setupEventListeners() {
+  // Theme radio
+  document.querySelectorAll('input[name="themeMode"]').forEach(radio => {
+    radio.addEventListener('change', e => {
+      currentSettings[SK.THEME_MODE] = e.target.value;
+      broadcastToTabs('themeChanged', { theme: e.target.value });
+    });
+  });
+
+  // Ad block
+  el('adblockEnabled').addEventListener('change', e => {
+    currentSettings[SK.ADBLOCK_ENABLED] = e.target.checked;
+    chrome.runtime.sendMessage({ action: 'adblockToggled', enabled: e.target.checked }).catch(() => {});
+  });
+
+  // PDF dark mode (two checkboxes – keep in sync)
+  el('pdfDarkMode').addEventListener('change', e => {
+    currentSettings[SK.PDF_DARK_MODE] = e.target.checked;
+    el('pdfDarkMode2').checked = e.target.checked;
+    broadcastToTabs('pdfThemeChanged', { enabled: e.target.checked });
+  });
+  el('pdfDarkMode2').addEventListener('change', e => {
+    currentSettings[SK.PDF_DARK_MODE] = e.target.checked;
+    el('pdfDarkMode').checked = e.target.checked;
+    broadcastToTabs('pdfThemeChanged', { enabled: e.target.checked });
+  });
+
+  // Office dark mode (two checkboxes – keep in sync)
+  el('officeDarkMode').addEventListener('change', e => {
+    currentSettings[SK.OFFICE_DARK_MODE] = e.target.checked;
+    el('officeDarkMode2').checked = e.target.checked;
+    broadcastToTabs('officeThemeChanged', { enabled: e.target.checked });
+  });
+  el('officeDarkMode2').addEventListener('change', e => {
+    currentSettings[SK.OFFICE_DARK_MODE] = e.target.checked;
+    el('officeDarkMode').checked = e.target.checked;
+    broadcastToTabs('officeThemeChanged', { enabled: e.target.checked });
+  });
+
+  // Textarea updates (track in currentSettings for Save All)
+  const textareaMap = [
+    ['customDarkCSS',       SK.CUSTOM_DARK_CSS],
+    ['customLightCSS',      SK.CUSTOM_LIGHT_CSS],
+    ['pdfCustomDarkCSS',    SK.PDF_CUSTOM_DARK_CSS],
+    ['pdfCustomLightCSS',   SK.PDF_CUSTOM_LIGHT_CSS],
+    ['officeCustomDarkCSS', SK.OFFICE_CUSTOM_DARK_CSS],
+    ['officeCustomLightCSS',SK.OFFICE_CUSTOM_LIGHT_CSS],
+    ['customRules',         SK.CUSTOM_RULES],
+  ];
+  for (const [id, key] of textareaMap) {
+    el(id)?.addEventListener('input', e => { currentSettings[key] = e.target.value; });
+  }
+
+  // Allowlist
+  el('addAllowlistBtn').addEventListener('click', addToAllowlist);
+  el('allowlistInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') addToAllowlist();
+  });
+
+  // Custom rules
+  el('saveCustomRules').addEventListener('click', saveCustomRules);
+
+  // Import / Export
+  el('exportBtn').addEventListener('click', exportSettings);
+  el('importBtn').addEventListener('click', () => el('importFile').click());
+  el('importFile').addEventListener('change', importSettings);
+
+  // Reset
+  el('resetBtn').addEventListener('click', resetSettings);
+
+  // Save all
+  el('saveAllBtn').addEventListener('click', saveAllSettings);
+}
+
+// ─── Custom rules ─────────────────────────────────────────────────────────────
+async function saveCustomRules() {
+  const text = el('customRules').value.trim();
+  currentSettings[SK.CUSTOM_RULES] = text;
+
+  if (!text) {
+    showSaveStatus('Custom rules cleared');
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(text);
+    const rules  = Array.isArray(parsed) ? parsed : [parsed];
+
+    // Validate required fields minimally
+    for (const r of rules) {
+      if (!r.id || !r.action || !r.condition) throw new Error('Rules must have id, action, condition');
+    }
+
+    await chrome.declarativeNetRequest.updateDynamicRules({ addRules: rules });
+    showSaveStatus('Custom rules saved');
+  } catch (e) {
+    showSaveStatus(`Error: ${e.message}`, true);
+  }
+}
+
+// ─── Save all ─────────────────────────────────────────────────────────────────
 async function saveAllSettings() {
   const toSave = {};
-  Object.entries(STORAGE_KEYS).forEach(([key, storageKey]) => {
+  for (const [key] of Object.entries(SK)) {
+    const storageKey = SK[key];
     if (currentSettings[storageKey] !== undefined) {
       toSave[storageKey] = currentSettings[storageKey];
     }
-  });
-  
-  await new Promise(resolve => chrome.storage.sync.set(toSave, resolve));
+  }
+
+  await new Promise(r => chrome.storage.sync.set(toSave, r));
+
+  // Notify open tabs about theme change in case it was updated via radio
+  broadcastToTabs('themeChanged', { theme: currentSettings[SK.THEME_MODE] });
+
   showSaveStatus('All settings saved!');
 }
 
-function showSaveStatus(message, isError = false) {
-  const status = getEl('saveStatus');
+// ─── Status indicator ─────────────────────────────────────────────────────────
+function showSaveStatus(message, isError = false, isWarn = false) {
+  const status = el('saveStatus');
+  if (!status) return;
   status.textContent = message;
-  status.style.color = isError ? 'var(--opt-danger)' : 'var(--opt-success)';
-  setTimeout(() => { status.textContent = ''; }, 3000);
+  status.style.color = isError ? 'var(--opt-danger)'
+                     : isWarn  ? 'var(--opt-accent)'
+                     : 'var(--opt-success)';
+  clearTimeout(status._timer);
+  status._timer = setTimeout(() => { status.textContent = ''; }, 3500);
 }
 
+// ─── Export / Import ──────────────────────────────────────────────────────────
 function exportSettings() {
-  const exportData = {
-    version: '1.0.0',
-    timestamp: Date.now(),
-    settings: currentSettings
-  };
-  
-  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const blob = new Blob(
+    [JSON.stringify({ version: '1.0.0', timestamp: Date.now(), settings: currentSettings }, null, 2)],
+    { type: 'application/json' }
+  );
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
+  const a   = document.createElement('a');
+  a.href     = url;
   a.download = `noctiv-settings-${new Date().toISOString().split('T')[0]}.json`;
   a.click();
   URL.revokeObjectURL(url);
@@ -293,40 +333,43 @@ function exportSettings() {
 function importSettings(e) {
   const file = e.target.files[0];
   if (!file) return;
-  
+
   const reader = new FileReader();
-  reader.onload = async (event) => {
+  reader.onload = async event => {
     try {
       const data = JSON.parse(event.target.result);
-      if (data.settings) {
-        currentSettings = { ...DEFAULTS, ...data.settings };
-        await saveAllSettings();
-        applySettingsToUI();
-        showSaveStatus('Settings imported successfully');
-      } else {
-        throw new Error('Invalid settings file format');
-      }
+      if (!data?.settings) throw new Error('Invalid settings file – missing "settings" key');
+
+      currentSettings = { ...DEFAULTS, ...data.settings };
+      await saveAllSettings();
+      applySettingsToUI();
+      showSaveStatus('Settings imported successfully');
     } catch (err) {
-      showSaveStatus('Import failed: ' + err.message, true);
+      showSaveStatus(`Import failed: ${err.message}`, true);
     }
     e.target.value = '';
   };
   reader.readAsText(file);
 }
 
+// ─── Reset ────────────────────────────────────────────────────────────────────
 async function resetSettings() {
-  if (!confirm('Reset all settings to defaults? This cannot be undone.')) return;
-  
+  if (!confirm('Reset all settings to defaults?\nThis cannot be undone.')) return;
+
   currentSettings = { ...DEFAULTS };
-  await new Promise(resolve => chrome.storage.sync.clear(resolve));
-  await new Promise(resolve => chrome.storage.sync.set(DEFAULTS, resolve));
+  await new Promise(r => chrome.storage.sync.clear(r));
+  await new Promise(r => chrome.storage.sync.set({ ...DEFAULTS }, r));
   applySettingsToUI();
+  broadcastToTabs('themeChanged', { theme: DEFAULTS[SK.THEME_MODE] });
   showSaveStatus('Settings reset to defaults');
 }
 
+// ─── Boot ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   await loadSettings();
   setupNavigation();
   setupEventListeners();
-  getEl('extVersion').textContent = chrome.runtime.getManifest().version;
+
+  const manifest = chrome.runtime.getManifest();
+  el('extVersion').textContent = manifest.version;
 });
