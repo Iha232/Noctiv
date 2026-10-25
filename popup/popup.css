@@ -54,15 +54,12 @@ body {
   border-bottom: 1px solid var(--popup-border);
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--popup-accent), #6200ea);
-  color: white;
+.logo-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  object-fit: cover;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
 }
 
 .popup-header h1 {
